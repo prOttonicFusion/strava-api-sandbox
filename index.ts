@@ -142,13 +142,12 @@ express()
 
       const tokenResult = await retrieveAccessToken(code);
       accessToken = tokenResult.access_token
-
       console.log("access-token:", accessToken);
-
       res.redirect(`${BASE_URL}/get_activities`);
     }
   })
   .get("/get_activities", async (req, res, next) => {
+    // Fetch some activity data for the authenticated user
     const startDate = '2020-01-01'
     const endDate = '2021-02-09'
 
