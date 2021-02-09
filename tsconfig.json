@@ -5,7 +5,7 @@
       "module": "commonjs",
     },
     "include": [
-      "server.ts"
+      "index.ts"
     ],
     "exclude": [
       "node_modules"
