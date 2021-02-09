@@ -44,7 +44,7 @@ const getAuthUrl = async (state: string): Promise<string> => {
   });
 };
 
-const retrieveAccessToken = async (code: string): Promise<any> => {
+const retrieveAccessToken = async (code: string): Promise<IStravaAccessToken> => {
   const tokenRequestBody = {
     grant_type: "authorization_code",
     client_id: CLIENT_ID,
@@ -52,7 +52,7 @@ const retrieveAccessToken = async (code: string): Promise<any> => {
     code,
   };
 
-  return await post<any>(STRAVA_TOKEN_URL, tokenRequestBody);
+  return await post<IStravaAccessToken>(STRAVA_TOKEN_URL, tokenRequestBody);
 };
 
 const refreshAccessToken = async (
