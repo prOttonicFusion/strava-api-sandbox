@@ -103,6 +103,8 @@ const get = async <T>(url, accessToken: string): Promise<T> => {
     },
   });
 
+  console.log(result)
+
   return result.data;
 };
 
@@ -138,7 +140,8 @@ express()
       console.log("code:", code);
       console.log("scope:", scope);
 
-      accessToken = await retrieveAccessToken(code);
+      const tokenResult = await retrieveAccessToken(code);
+      accessToken = tokenResult.access_token
 
       console.log("access-token:", accessToken);
 
