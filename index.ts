@@ -3,6 +3,7 @@ import * as express from "express";
 import * as buildUrl from "build-url";
 import * as querystring from "querystring";
 import * as moment from "moment";
+import { IStravaAccessToken, IStravaRawWorkouts } from "./types";
 
 const fs = require("fs");
 require("dotenv").config();
@@ -20,18 +21,6 @@ const CALLBACK_URL = `${BASE_URL}/get_token`;
 const SCOPES = ["profile:read_all", "activity:read_all"];
 const STATE = "prottonic";
 
-interface IStravaAccessToken {
-  access_token: string;
-  expires_at: number;
-  token_type: string;
-  scope: string;
-  refresh_token: string;
-  userid: string;
-  athlete?: {
-    id: string;
-  };
-}
-
 const getAuthUrl = async (state: string): Promise<string> => {
   return buildUrl(STRAVA_OAUTH_URL, {
     queryParams: {
@@ -44,7 +33,9 @@ const getAuthUrl = async (state: string): Promise<string> => {
   });
 };
 
-const retrieveAccessToken = async (code: string): Promise<IStravaAccessToken> => {
+const retrieveAccessToken = async (
+  code: string
+): Promise<IStravaAccessToken> => {
   const tokenRequestBody = {
     grant_type: "authorization_code",
     client_id: CLIENT_ID,
@@ -73,7 +64,7 @@ const getActivities = async (
   startdate: moment.Moment | Date | string,
   enddate: moment.Moment | Date | string,
   page: number
-): Promise<any> => {
+): Promise<IStravaRawWorkouts> => {
   const workoutsUrl = buildUrl(STRAVA_API_URL, {
     path: "/athlete/activities",
     queryParams: {
@@ -83,7 +74,7 @@ const getActivities = async (
     },
   });
 
-  return get<any>(workoutsUrl, accessToken);
+  return get<IStravaRawWorkouts>(workoutsUrl, accessToken);
 };
 
 const post = async <T>(url, body): Promise<T> => {
@@ -103,12 +94,12 @@ const get = async <T>(url, accessToken: string): Promise<T> => {
     },
   });
 
-  console.log(result)
+  console.log(result);
 
   return result.data;
 };
 
-let accessToken = undefined
+let accessToken = undefined;
 
 express()
   .use((req, res, next) => {
@@ -141,18 +132,18 @@ express()
       console.log("scope:", scope);
 
       const tokenResult = await retrieveAccessToken(code);
-      accessToken = tokenResult.access_token
+      accessToken = tokenResult.access_token;
       console.log("access-token:", accessToken);
       res.redirect(`${BASE_URL}/get_activities`);
     }
   })
   .get("/get_activities", async (req, res, next) => {
     // Fetch some activity data for the authenticated user
-    const startDate = '2020-01-01'
-    const endDate = '2021-02-09'
+    const startDate = "2020-01-01";
+    const endDate = "2021-02-09";
 
     const activities = await getActivities(accessToken, startDate, endDate, 1);
 
-    res.json(activities)
+    res.json(activities);
   })
   .listen(3000);
