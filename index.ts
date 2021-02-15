@@ -3,7 +3,7 @@ import * as express from "express";
 import * as buildUrl from "build-url";
 import * as querystring from "querystring";
 import * as moment from "moment";
-import { IStravaAccessToken, IStravaRawWorkouts } from "./types";
+import { IStravaAccessToken, IStravaRawWorkouts, IStravaSubscriptionData } from "./types";
 
 const fs = require("fs");
 require("dotenv").config();
@@ -14,6 +14,7 @@ const STRAVA_API_URL = "https://www.strava.com/api/v3";
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const NOTIFICATION_URL = process.env.NOTIFICATION_URL;
 
 const BASE_URL = "http://localhost:3000";
 
@@ -46,19 +47,6 @@ const retrieveAccessToken = async (
   return await post<IStravaAccessToken>(STRAVA_TOKEN_URL, tokenRequestBody);
 };
 
-const refreshAccessToken = async (
-  refreshToken: string
-): Promise<IStravaAccessToken> => {
-  const refreshRequestBody = {
-    grant_type: "refresh_token",
-    client_id: CLIENT_ID,
-    client_secret: CLIENT_SECRET,
-    refresh_token: refreshToken,
-  };
-
-  return await post<IStravaAccessToken>(STRAVA_TOKEN_URL, refreshRequestBody);
-};
-
 const getActivities = async (
   accessToken: string,
   startdate: moment.Moment | Date | string,
@@ -75,6 +63,39 @@ const getActivities = async (
   });
 
   return get<IStravaRawWorkouts>(workoutsUrl, accessToken);
+};
+
+const createSubscription = async (): Promise<any> => {
+  const subscriptionUrl = buildUrl(STRAVA_API_URL, {
+    path: "push_subscriptions",
+  });
+
+  const subRequest = {
+    client_id: CLIENT_ID,
+    client_secret: CLIENT_SECRET,
+    callback_url: NOTIFICATION_URL,
+    verify_token: "STRAVA",
+  };
+
+  const subscriptionResponse = await post<any>(subscriptionUrl, subRequest);
+
+  return subscriptionResponse;
+};
+
+const getSubscriptions = async (accessToken: string): Promise<IStravaSubscriptionData[]> => {
+  const url = buildUrl(STRAVA_API_URL, { path: "push_subscriptions" });
+
+  const result = await axios.get<IStravaSubscriptionData[]>(url, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    params: {
+      client_id: CLIENT_ID,
+      client_secret: CLIENT_SECRET,
+    },
+  });
+
+  return result.data;
 };
 
 const post = async <T>(url, body): Promise<T> => {
@@ -134,7 +155,9 @@ express()
       const tokenResult = await retrieveAccessToken(code);
       accessToken = tokenResult.access_token;
       console.log("access-token:", accessToken);
-      res.redirect(`${BASE_URL}/get_activities`);
+      // res.redirect(`${BASE_URL}/get_activities`);
+      //   res.redirect(`${BASE_URL}/subscribe`);
+      res.redirect(`${BASE_URL}/get_subscriptions`);
     }
   })
   .get("/get_activities", async (req, res, next) => {
@@ -145,5 +168,13 @@ express()
     const activities = await getActivities(accessToken, startDate, endDate, 1);
 
     res.json(activities);
+  })
+  .get("/subscribe", async (req, res, next) => {
+    const subscriptionDetails = await createSubscription();
+    res.json(subscriptionDetails);
+  })
+  .get("/get_subscriptions", async (req, res, next) => {
+    const subscriptionDetails = await getSubscriptions(accessToken);
+    res.json(subscriptionDetails);
   })
   .listen(3000);

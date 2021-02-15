@@ -14,3 +14,5 @@
 
 ## Usage
 When navigating to http://localhost:3000/, the user should be redirected to the Strava Authorization site. After a successful sign-in, the user is redirected back to the sandbox site and a query is made to the the activities API endpoint. If everything is set up correctly, you should see some returned activity data both in the browser and on the command line.
+
+To test subscriptions related stuff, set up the [callback server](https://github.com/prottonicfusion/strava-webhooks) and add the ngrok url to `.env` as  the `NOTIFICATION_URL`.

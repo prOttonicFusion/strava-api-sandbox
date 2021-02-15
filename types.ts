@@ -55,3 +55,12 @@ export interface IStravaAccessToken {
       total_photo_count: number;
       has_kudoed: boolean;
   }
+
+  export interface IStravaSubscriptionData {
+    id: number;
+    application_id: number;
+    created_at: string;
+    updated_at: string;
+    resource_state: number;
+    subscribcallback_url: string;
+}
