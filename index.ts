@@ -65,6 +65,26 @@ const getActivities = async (
   return get<IStravaRawWorkouts>(workoutsUrl, accessToken);
 };
 
+const getStreamsForActivity = async (accessToken: string, activityId: string): Promise<any> => {
+  const streamUrl = buildUrl(STRAVA_API_URL, {
+    path: `/activities/${activityId}/streams`,
+    queryParams: {
+      key_by_type: 'true',
+      keys: ['time', 'distance', 'altitude', 'velocity_smooth', 'heartrate', 'cadence', 'watts', 'temp', 'moving', 'grade_smooth'],
+    },
+  })
+
+  console.log(streamUrl);
+
+  const result = await axios.get<any>(streamUrl, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  return result.data;
+}
+
 const createSubscription = async (): Promise<any> => {
   const subscriptionUrl = buildUrl(STRAVA_API_URL, {
     path: "push_subscriptions",
@@ -156,18 +176,29 @@ express()
       accessToken = tokenResult.access_token;
       console.log("access-token:", accessToken);
       // res.redirect(`${BASE_URL}/get_activities`);
-      //   res.redirect(`${BASE_URL}/subscribe`);
-      res.redirect(`${BASE_URL}/get_subscriptions`);
+      res.redirect(`${BASE_URL}/get_activity_streams`);
+      // res.redirect(`${BASE_URL}/subscribe`);
+      // res.redirect(`${BASE_URL}/get_subscriptions`);
     }
   })
   .get("/get_activities", async (req, res, next) => {
     // Fetch some activity data for the authenticated user
-    const startDate = "2020-01-01";
-    const endDate = "2021-02-09";
+    const startDate = "2021-01-01";
+    const endDate = "2021-03-03";
 
     const activities = await getActivities(accessToken, startDate, endDate, 1);
 
     res.json(activities);
+  })
+  .get("/get_activity_streams", async (req, res, next) => {
+    // Fetch the streams related to a specific activity
+    const activityId = '123';
+
+    const streams = await getStreamsForActivity(accessToken, activityId);
+
+    console.log(streams);
+
+    res.end()
   })
   .get("/subscribe", async (req, res, next) => {
     const subscriptionDetails = await createSubscription();
