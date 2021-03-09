@@ -133,6 +133,12 @@ const get = async <T>(url, accessToken: string): Promise<T> => {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
+    transformResponse: data => JSON.parse(data, (key, value) => {
+        if (key === 'id' && typeof value === 'number') {
+            return value.toString();
+        }
+        return value;
+      })
   });
 
   console.log(result);
@@ -175,8 +181,8 @@ express()
       const tokenResult = await retrieveAccessToken(code);
       accessToken = tokenResult.access_token;
       console.log("access-token:", accessToken);
-      // res.redirect(`${BASE_URL}/get_activities`);
-      res.redirect(`${BASE_URL}/get_activity_streams`);
+      res.redirect(`${BASE_URL}/get_activities`);
+      // res.redirect(`${BASE_URL}/get_activity_streams`);
       // res.redirect(`${BASE_URL}/subscribe`);
       // res.redirect(`${BASE_URL}/get_subscriptions`);
     }
@@ -192,7 +198,7 @@ express()
   })
   .get("/get_activity_streams", async (req, res, next) => {
     // Fetch the streams related to a specific activity
-    const activityId = '123';
+    const activityId = '4877152060';
 
     const streams = await getStreamsForActivity(accessToken, activityId);
 
