@@ -5,6 +5,8 @@ import * as querystring from "querystring";
 import * as moment from "moment";
 import { IStravaAccessToken, IStravaRawWorkouts, IStravaSubscriptionData } from "./types";
 
+const JSONbig = require('json-bigint');
+
 const fs = require("fs");
 require("dotenv").config();
 
@@ -133,8 +135,8 @@ const get = async <T>(url, accessToken: string): Promise<T> => {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
-    transformResponse: data => JSON.parse(data, (key, value) => {
-        if (key === 'id' && typeof value === 'number') {
+    transformResponse: data => JSONbig.parse(data, (key, value) => {
+        if (key === 'id') {
             return value.toString();
         }
         return value;
