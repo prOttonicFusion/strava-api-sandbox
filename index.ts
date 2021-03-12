@@ -3,7 +3,7 @@ import * as express from "express";
 import * as buildUrl from "build-url";
 import * as querystring from "querystring";
 import * as moment from "moment";
-import { IStravaAccessToken, IStravaRawWorkouts, IStravaSubscriptionData } from "./types";
+import { IStravaAccessToken, IStravaActivity, IStravaSubscriptionData, IStravaAthlete } from "./types";
 
 const JSONbig = require('json-bigint');
 
@@ -49,12 +49,20 @@ const retrieveAccessToken = async (
   return await post<IStravaAccessToken>(STRAVA_TOKEN_URL, tokenRequestBody);
 };
 
+const getAthlete = async (accessToken: string): Promise<IStravaAthlete> => {
+  const workoutsUrl = buildUrl(STRAVA_API_URL, {
+    path: "/athlete",
+  });
+
+  return get<IStravaAthlete>(workoutsUrl, accessToken);
+};
+
 const getActivities = async (
   accessToken: string,
   startdate: moment.Moment | Date | string,
   enddate: moment.Moment | Date | string,
   page: number
-): Promise<IStravaRawWorkouts> => {
+): Promise<IStravaActivity> => {
   const workoutsUrl = buildUrl(STRAVA_API_URL, {
     path: "/athlete/activities",
     queryParams: {
@@ -64,15 +72,15 @@ const getActivities = async (
     },
   });
 
-  return get<IStravaRawWorkouts>(workoutsUrl, accessToken);
+  return get<IStravaActivity>(workoutsUrl, accessToken);
 };
 
 const getStreamsForActivity = async (accessToken: string, activityId: string): Promise<any> => {
   const streamUrl = buildUrl(STRAVA_API_URL, {
-    path: `/activities/${activityId}/streams`,
+    path: `/activities/${activityId}`,
     queryParams: {
       key_by_type: 'true',
-      keys: ['time', 'distance', 'altitude', 'velocity_smooth', 'heartrate', 'cadence', 'watts', 'temp', 'moving', 'grade_smooth'],
+      // keys: ['time', 'distance', 'altitude', 'velocity_smooth', 'heartrate', 'cadence', 'watts', 'temp', 'moving', 'grade_smooth'],
     },
   })
 
@@ -183,11 +191,18 @@ express()
       const tokenResult = await retrieveAccessToken(code);
       accessToken = tokenResult.access_token;
       console.log("access-token:", accessToken);
-      res.redirect(`${BASE_URL}/get_activities`);
+      res.redirect(`${BASE_URL}/get_athlete`);
+      // res.redirect(`${BASE_URL}/get_activities`);
       // res.redirect(`${BASE_URL}/get_activity_streams`);
       // res.redirect(`${BASE_URL}/subscribe`);
       // res.redirect(`${BASE_URL}/get_subscriptions`);
     }
+  })
+  .get("/get_athlete", async (req, res, next) => {
+    // Fetch profile data for the authenticated user
+    const athlete = await getAthlete(accessToken);
+
+    res.json(athlete);
   })
   .get("/get_activities", async (req, res, next) => {
     // Fetch some activity data for the authenticated user

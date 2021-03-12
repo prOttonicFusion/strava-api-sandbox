@@ -9,7 +9,7 @@ export interface IStravaAccessToken {
     };
   }
   
-  export interface IStravaRawWorkouts {
+  export interface IStravaActivity {
       resource_state: number
       athlete: {
           id: number;
@@ -63,4 +63,8 @@ export interface IStravaAccessToken {
     updated_at: string;
     resource_state: number;
     subscribcallback_url: string;
+}
+
+export interface IStravaAthlete {
+  
 }
