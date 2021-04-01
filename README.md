@@ -10,6 +10,7 @@
     CLIENT_SECRET=***
     ```
     with `***` replaced with the client id and secret, respectively, copied from https://www.strava.com/settings/api.
+1. Launch the sandbox using `npm run start:watch`
 1. The sandbox is now accessible through http://localhost:3000/
 
 ## Usage

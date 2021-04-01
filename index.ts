@@ -13,6 +13,7 @@ require("dotenv").config();
 const STRAVA_OAUTH_URL = "https://www.strava.com/oauth/authorize";
 const STRAVA_TOKEN_URL = "https://www.strava.com/oauth/token";
 const STRAVA_API_URL = "https://www.strava.com/api/v3";
+const STRAVA_DEAUTH_URL = "https://www.strava.com/oauth/deauthorize";
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
@@ -47,6 +48,18 @@ const retrieveAccessToken = async (
   };
 
   return await post<IStravaAccessToken>(STRAVA_TOKEN_URL, tokenRequestBody);
+};
+
+const revokeAccessToken = async (
+  accessToken: string
+): Promise<any> => {
+  const revokeUrl = buildUrl(STRAVA_DEAUTH_URL, {
+    queryParams: {
+      access_token: accessToken
+    }
+  })
+
+  return await post<IStravaAccessToken>(revokeUrl, {});
 };
 
 const getAthlete = async (accessToken: string): Promise<IStravaAthlete> => {
@@ -230,5 +243,9 @@ express()
   .get("/get_subscriptions", async (req, res, next) => {
     const subscriptionDetails = await getSubscriptions(accessToken);
     res.json(subscriptionDetails);
+  })
+  .get("/revoke_access", async (req, res, next) => {
+    const revokedTokens = await revokeAccessToken(accessToken);
+    res.json(revokedTokens);
   })
   .listen(3000);
